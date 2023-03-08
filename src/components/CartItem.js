@@ -13,7 +13,7 @@ const CartItem = ({item, onDelete}) => {
             <Text>Quantity:{item.quantity}</Text>
             <Text>${item.price}</Text>
         </View>
-        <TouchableOpacity onPress={() => console.log('eliminar del carrito')}>
+        <TouchableOpacity onPress={() => onDelete(item.id)}>
             <Ionicons name='trash' size={24} color="red" />
         </TouchableOpacity>
       </View>

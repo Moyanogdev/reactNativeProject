@@ -1,0 +1,1 @@
+export const URL_API = 'https://reactnativeproject-1a0aa-default-rtdb.firebaseio.com'
