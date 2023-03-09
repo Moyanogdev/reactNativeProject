@@ -12,9 +12,11 @@ const OrdersScreen = () => {
     dispatch(getOrders())
   }, [])
   
-
+  const handleDeleteItem = (id) => {
+    dispatch(deleteOrder(id))
+  }
   const renderOrderItem = ({item}) => (
-    <OrderItem item={item} onDelete={() => console.log('on delete')}/>
+    <OrderItem item={item} onDelete={() => handleDeleteItem(item.id)}/>
   )
 
   return (
