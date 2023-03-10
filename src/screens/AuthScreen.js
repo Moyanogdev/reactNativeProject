@@ -1,34 +1,116 @@
-import { StyleSheet, Text, View, KeyboardAvoidingView, TouchableOpacity, TextInput, Button } from 'react-native'
-import React, { useState } from 'react'
+import { StyleSheet, Text, View, KeyboardAvoidingView, TouchableOpacity, TextInput, Button, Alert } from 'react-native'
+import React, { useCallback, useEffect, useReducer, useState } from 'react'
 
 import {COLORS} from '../constants/colors'
 import { useDispatch } from 'react-redux'
 import { signup } from '../store/actions/auth.action'
+import Input from '../components/Input'
+
+const FORM_INPUT_UPDATE = 'FORM_INPUT_UPDATE'
+
+const formReducer = (state, action) => {
+    console.log(action)
+    if(action.type === FORM_INPUT_UPDATE) {
+        const updatedValues = {
+            ...state.inputValues,
+            [action.input]: action.value
+        }
+        const updatedValidities = {
+            ...state.inputValidities,
+            [action.input]: action.isValid,
+        }
+        let updatedFormIsValid = true
+        for (const key in updatedValidities) {
+            updatedFormIsValid = updatedFormIsValid && updatedValidities[key]
+        }
+        return {
+            inputValues: updatedValues,
+            inputValidities: updatedValidities,
+            formIsValid: updatedFormIsValid,
+        }
+    }
+    return state
+}
 
 const AuthScreen = () => {
     const dispatch = useDispatch()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [error, setError] = useState(null)
+
+    useEffect(() => {
+        if(error) {
+            Alert.alert('Ocurrió un error', error, [{text: 'OK'}])
+        }
+    }), [error]
+
+    const [formState, dispatchFormState] = useReducer(formReducer, {
+        inputValues: {
+            email: '',
+            password: '',
+        },
+        inputValidities: {
+            email: false,
+            password: false,
+        },
+        formIsValid: false,
+    })
 
     const handleSignUp = () => {
-        dispatch(signup(email, password))
+        //dispatch(signup(email, password))
+        if(formState.formIsValid) {
+            dispatch(signup(formState.inputValues.email, formState.inputValues.password))
+        } else {
+            Alert.alert('Formulario inválido', 'Ingresa email y password válido', [
+                {text: 'OK'},
+            ])
+        }
     }
+
+    const onInputChangeHandler = useCallback((inputIdentifier, inputValue, inputValidity) => {
+        console.log(inputIdentifier, inputValue, inputValidity)
+        dispatchFormState({
+            type: FORM_INPUT_UPDATE,
+            value: inputValue,
+            isValid: inputValidity,
+            input: inputIdentifier,
+        })
+    }, [dispatchFormState])
 
   return (
     <KeyboardAvoidingView behavior='height' style={styles.screen}>
         <View style={styles.container}>
             <Text style={styles.title}>LOGIN</Text>
-            <Text>Email</Text>
-            <TextInput keyboardType='email-address' autoCapitalize='none' value={email} onChangeText={setEmail}/>
-            <Text>Password</Text>
-            <TextInput secureTextEntry autoCapitalize='none' value={password} onChangeText={setPassword}/>
+            <Input 
+                id='email' 
+                label='Email' 
+                keyboardType='email-address' 
+                required 
+                email 
+                autoCapitalize='none' 
+                errorText='Ingrese un email válido' 
+                onInputChange={onInputChangeHandler} 
+                initialValue=''
+            />
+            <Input 
+                id='password'
+                label='Password'
+                keyboardType='default'
+                required
+                password
+                secureTextEntry
+                autoCapitalize='none'
+                errorText='Ingrese una contraseña válida'
+                onInputChange={onInputChangeHandler}
+                initialValue=''
+            />
             <Button title='Sign Up' onPress={handleSignUp}/>
-            <View style={styles.prompt}>
+            {/*<View style={styles.prompt}>
                 <Text style={styles.promptMessage}>Do you already have an account?</Text>
                 <TouchableOpacity onPress={() => console.log('ingresar')}>
                     <Text style={styles.promptButton}>Sign in</Text>
                 </TouchableOpacity>
-            </View>
+            </View>*/}
         </View>
     </KeyboardAvoidingView>
 
